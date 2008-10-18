@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "wix.example", "wix.example\wix.example.csproj", "{6E52A76A-A896-4EDD-A978-CCE5E30D8F20}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "wix.example.tests", "wix.example.tests\wix.example.tests.csproj", "{D263485F-490B-4B35-B52C-160EDD6C597C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{54AD4289-9F85-4D90-A6BA-EB2169E12B7A}"
+	ProjectSection(SolutionItems) = preProject
+		build.bat = build.bat
+		install.bat = install.bat
+		properties.include = properties.include
+		uninstall.bat = uninstall.bat
+		wix.example.build = wix.example.build
+		wix.example.wxs = wix.example.wxs
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6E52A76A-A896-4EDD-A978-CCE5E30D8F20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E52A76A-A896-4EDD-A978-CCE5E30D8F20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E52A76A-A896-4EDD-A978-CCE5E30D8F20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E52A76A-A896-4EDD-A978-CCE5E30D8F20}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D263485F-490B-4B35-B52C-160EDD6C597C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D263485F-490B-4B35-B52C-160EDD6C597C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D263485F-490B-4B35-B52C-160EDD6C597C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D263485F-490B-4B35-B52C-160EDD6C597C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,110 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project name="wix.example" default="complete" xmlns="http://nant.sf.net/schemas/nant.xsd">
+  <include buildfile="properties.include" />
+
+  <target name="complete" depends="clean, compile, setup, test, build.msi, deploy" description="Compile, Run Tests, Create MSI file and prepare for Deployment" />
+
+  <target name="clean" description="Deletes all generated folders and files to start with clean folder structure">
+    <delete file="${msi.file}" />
+    <delete dir="${build.dir}" />
+  </target>
+
+  <target name="compile" description="Compiles debug solution">
+    <exec program="${msbuild}">
+      <arg value="${sln.file}" />
+      <arg value="/verbosity:minimal" />
+      <arg value="/p:Configuration=${config}" />
+      <arg value="/p:WarningLevel=0" />
+    </exec>
+  </target>
+
+  <target name="setup" depends="compile">
+    <mkdir dir="${build.dir}" if="${not directory::exists(build.dir)}"/>
+    <mkdir dir="${deploy.dir}" if="${not directory::exists(deploy.dir)}"/>
+    <mkdir dir="${deploy.src.dir}" if="${not directory::exists(deploy.src.dir)}"/>
+    <mkdir dir="${deploy.bin.dir}" if="${not directory::exists(deploy.bin.dir)}"/>
+    <mkdir dir="${test.reports.dir}" if="${not directory::exists(test.reports.dir)}"/>
+    <mkdir dir="${config.dir}" if="${not directory::exists(config.dir)}" />
+    <mkdir dir="${unit.tests.dir}" if="${not directory::exists(unit.tests.dir)}" />
+    <copy todir="${config.dir}">
+      <fileset basedir="${exe.dll.dir}">
+        <include name="**/*" />
+      </fileset>
+    </copy>
+    <copy todir="${unit.tests.dir}">
+      <fileset basedir="${unit.tests.dll.dir}">
+        <include name="**/*" />
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="test">
+    <exec program="nunit-console.exe" basedir="lib\nunit">
+      <arg value="${unit.test.dll}" />
+      <arg value="/xml:${test.reports.dir}\UnitTests.xml" />
+    </exec>
+  </target>
+
+
+  <target name="deploy">
+    <call target="deploy.bin" />
+    <call target="deploy.src" />
+  </target>
+
+  <target name="deploy.src">
+    <zip zipfile="${deploy.src.dir}\${zip.file.prefix}.src_${build.number}.zip">
+      <fileset basedir="${directory::get-current-directory()}">
+        <exclude name="${build.dir}/**" />
+        <exclude name="${deploy.dir}/**" />
+        <exclude name=".svn/" />
+        <exclude name="*resharper*" />
+        <exclude name="*ReSharper*/**" />
+        <exclude name="*suo*" />
+        <exclude name="*.cache*" />
+        <include name="**" />
+      </fileset>
+    </zip>
+  </target>
+
+  <target name="deploy.bin">
+    <zip zipfile="${deploy.bin.dir}\${zip.file.prefix}.bin_${build.number}.zip">
+      <fileset basedir="${config.dir}">
+        <exclude name ="*.pdb" />
+        <exclude name ="*.xml" />
+        <exclude name ="UnitTests/**" />
+        <include name="**" />
+      </fileset>
+    </zip>
+  </target>
+
+  <target name="build.msi">
+    <call target="msi.candle"/>
+    <call target="msi.light"/>
+    <copy file="${msi.file}" tofile="${config.dir}/${msi.file}" />
+    <call target="msi.cleanup" />
+  </target>
+
+  <target name="msi.candle">
+    <exec program="${candle.exe}" basedir="${wix}">
+      <arg value="-dCONFIG=${config}" />
+      <arg value="-dBUILDNUMBER=${build.number}" />
+      <arg value="-dWIN64=no" />
+      <arg value="${wxs.file}" />
+    </exec>
+  </target>
+
+  <target name="msi.light">
+    <exec program="${light.exe}" basedir="${wix}">
+      <arg value="-out" />
+      <arg value="${msi.file}" />
+      <arg value="${wixobj.file}" />
+      <arg value="lib\wix\wixui.wixlib" />
+      <arg value="-loc" />
+      <arg value="lib\wix\WixUI_en-us.wxl" />
+    </exec>
+  </target>
+
+  <target name="msi.cleanup">
+    <delete file="${wixobj.file}" />
+  </target>
+</project>

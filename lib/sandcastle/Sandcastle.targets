@@ -1,0 +1,157 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+ Sandcastle .targets file for MSBuild. This version uses the September CTP Refresh of Sandcastle, found at
+ http://www.microsoft.com/downloads/details.aspx?FamilyId=E82EA71D-DA89-42EE-A715-696E3A4873B2&displaylang=en
+ Author: Anders Ljusberg (http://ljusberg.se/blogs/smorakning)
+
+ Updated 2006-09-27 Don Eddleman Added correct pathing to help2 compiler for vs2005 and tokenized output dir.
+
+ Updated 2006-10-12 Anders Ljusberg Now uses September CTP of Sandcastle. Including support for VS2005 transforms
+
+ This file, Sandcastle.Files.includes and the SandcastleConfigurator.vbs script should be copied to c:\Program Files\MSBuild\Sandcastle
+ For instructions, see my blog and/or the sample provided in SandcastleTest.zip
+-->
+
+<Project DefaultTargets="DocumentationAll" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- Import hard-coded files -->
+  <Import Project="Sandcastle.Files.includes" />
+
+  <PropertyGroup>
+    <!-- Path to your Sandcastle installation -->
+    <SandcastlePath>C:\Program Files\Sandcastle</SandcastlePath>
+
+    <!-- Path to your HTML Help Workshop installation -->
+    <HtmlHelpCompilerBin>C:\Program Files\HTML Help Workshop</HtmlHelpCompilerBin>
+
+    <!-- Path to your HTML Help Workshop installation. This is for the VS 2005 SDK -->
+    <!-- 
+    <HelpCompiler2Bin>C:\Program Files\Visual Studio 2005 SDK\2006.09\VisualStudioIntegration\Archive\HelpIntegration</HelpCompiler2Bin>
+    -->
+    <!--    Vs 2003 should use this path and install vs2003 help sdk -->
+    <HelpCompiler2Bin>C:\Program Files\Microsoft Help 2.0 SDK</HelpCompiler2Bin>
+
+    <Presentation Condition="'$(Presentation)' == ''">vs2005</Presentation>
+    <FilenameStyle Condition="'$(FilenameStyle)' == ''">GUID</FilenameStyle>
+    <DocStyle Condition="'$(DocStyle)' == ''">Standard</DocStyle>
+
+    <SandcastleBin>$(SandcastlePath)\ProductionTools</SandcastleBin>
+    <SandcastleTransforms>$(SandcastlePath)\ProductionTransforms</SandcastleTransforms>
+    <SandcastleOutputStructure>$(SandcastlePath)\Presentation\$(Presentation)</SandcastleOutputStructure>
+
+    <!-- These properties should be overridden in your MSBuild file -->
+    <HelpName Condition="'$(HelpName)'==''">Test</HelpName>
+    <ReferenceContentFilePath Condition="'$(ReferenceContentFilePath)'==''">$(SandcastleOutputStructure)\content\reference_content.xml</ReferenceContentFilePath>
+    <SharedContentFilePath Condition="'$(SharedContentFilePath)'==''">$(SandcastleOutputStructure)\content\shared_content.xml</SharedContentFilePath>
+    <HelpOutputPath Condition="'$(HelpOutputPath)' == ''">Help</HelpOutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <FilenamesXSL Condition="'$(FilenameStyle)' == 'Friendly'">AddFriendlyFilenames.xsl</FilenamesXSL>
+    <FilenamesXSL Condition="'$(FilenameStyle)' != 'Friendly'">AddGUIDFilenames.xsl</FilenamesXSL>
+
+    <DocStyleXSL Condition="'$(DocStyle)' == 'VS'">ApplyVSDocModel.xsl</DocStyleXSL>
+    <DocStyleXSL Condition="'$(DocStyle)' != 'VS'">AddOverloads.xsl</DocStyleXSL>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <OutputDir Include="$(HelpOutputPath)\"/>
+    <OutputDir Include="$(HelpOutputPath)\html\"/>
+    <OutputDir Include="$(HelpOutputPath)\icons\"/>
+    <OutputDir Include="$(HelpOutputPath)\scripts\"/>
+    <OutputDir Include="$(HelpOutputPath)\styles\"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <CopyFrom Include="$(SandcastleOutputStructure)\icons\*.*">
+      <CopyTo>$(HelpOutputPath)\icons\</CopyTo>
+    </CopyFrom>
+    <CopyFrom Include="$(SandcastleOutputStructure)\scripts\*.*">
+      <CopyTo>$(HelpOutputPath)\scripts\</CopyTo>
+    </CopyFrom>
+    <CopyFrom Include="$(SandcastleOutputStructure)\styles\*.*">
+      <CopyTo>$(HelpOutputPath)\styles\</CopyTo>
+    </CopyFrom>
+  </ItemGroup>
+
+  <!-- Compiles documentation using Sandcastle, Html Help Compiler AND Microsoft Help Compiler 2.0 -->
+  <Target Name="DocumentationAll" DependsOnTargets="CompileCHM;CompileHX">
+  </Target>
+
+  <!-- Compiles documentation using Sandcastle and the Html Help Compiler -->
+  <Target Name="Documentation" DependsOnTargets="CompileCHM">
+  </Target>
+
+  <!-- Compiles documentation using Sandcastle and Microsoft Help Compiler 2.0 -->
+  <Target Name="DocumentationHelp2" DependsOnTargets="CompileHX">
+  </Target>
+
+  <!-- Creates the default help file output structure -->
+  <Target Name="EmptyOutputStructure">
+    <MakeDir Directories="@(OutputDir)" />
+    <Copy SourceFiles="@(CopyFrom)" DestinationFolder="%(CopyTo)" />
+  </Target>
+
+  <!-- Build reflection output-->
+  <Target Name="ReflectionXML">
+    <!-- Run MRefBuilder -->
+    <Exec Condition="@(Dependencies) != ''" Command="&quot;$(SandcastleBin)\MRefBuilder&quot; &quot;@(Assemblies, '&quot; &quot;')&quot; /dep:&quot;@(Dependencies, '&quot; /dep:&quot;')&quot; /out:reflection.org"/>
+
+    <Exec Condition="@(Dependencies) == ''" Command="&quot;$(SandcastleBin)\MRefBuilder&quot; &quot;@(Assemblies, '&quot; &quot;')&quot; /out:reflection.org"/>
+
+    <!-- Add some more data -->
+    <Exec Command="&quot;$(SandcastleBin)\XslTransform&quot; /xsl:&quot;$(SandcastleTransforms)\$(DocStyleXSL)&quot; /xsl:&quot;$(SandcastleTransforms)\$(FilenamesXSL)&quot; reflection.org /out:reflection.xml"/>
+  </Target>
+
+  <!-- Create manifest -->
+  <Target Name="ManifestXML" DependsOnTargets="ReflectionXML">
+    <Exec Command="&quot;$(SandcastleBin)\XslTransform&quot; /xsl:&quot;$(SandcastleTransforms)\ReflectionToManifest.xsl&quot; reflection.xml /out:manifest.xml"/>
+  </Target>
+
+  <!-- Create a sandcastle.config that is modified to fit this project -->
+  <Target Name="CreateSandcastleConfig">
+    <Exec Command="WScript.exe &quot;lib\sandcastle\SandcastleConfigurator.vbs&quot; /in:&quot;$(SandcastleOutputStructure)\Configuration\sandcastle.config&quot; /out:sandcastle.config /ref:&quot;$(ReferenceContentFilePath)&quot; /shared:&quot;$(SharedContentFilePath)&quot; /output:&quot;$(HelpOutputPath)&quot; /path:&quot;$(SandcastlePath)&quot; &quot;@(DocFiles, '&quot; &quot;')&quot;" />
+  </Target>
+
+  <!-- Build .htm files -->
+  <Target Name="BuildHTM" DependsOnTargets="ReflectionXML;ManifestXML;EmptyOutputStructure;CreateSandcastleConfig">
+    <Exec Command="&quot;$(SandcastleBin)\BuildAssembler&quot; /config:sandcastle.config manifest.xml"/>
+  </Target>
+
+  <!-- Generate HTML Help 1.x TOC -->
+  <Target Name="GenerateHHTOC" DependsOnTargets="ReflectionXML;BuildHTM;EmptyOutputStructure">
+	<Exec Command="&quot;$(SandcastleBin)\XslTransform&quot; /xsl:&quot;$(SandcastleTransforms)\CreateVSToc.xsl&quot; reflection.xml /out:toc.xml"/>
+    <Exec Command="&quot;$(SandcastleBin)\XslTransform&quot; /xsl:&quot;$(SandcastleTransforms)\TocToChmContents.xsl&quot; toc.xml /arg:html=$(HelpOutputPath)\html /out:$(HelpOutputPath)\$(HelpName).hhc"/>
+    <Exec Command="&quot;$(SandcastleBin)\XslTransform&quot; /xsl:&quot;$(SandcastleTransforms)\ReflectionToChmIndex.xsl&quot; reflection.xml /arg:html=$(HelpOutputPath)\html /out:$(HelpOutputPath)\$(HelpName).hhk"/>
+    <Exec Command="&quot;$(SandcastleBin)\XslTransform&quot; /xsl:&quot;$(SandcastleTransforms)\ReflectionToChmProject.xsl&quot; reflection.xml /arg:html=$(HelpOutputPath)\html /out:$(HelpOutputPath)\$(HelpName).hhp /arg:project=$(HelpName)"/>
+  </Target>
+
+  <!-- Compile the final HTML Help 1.x CHM file -->
+  <Target Name="CompileCHM" DependsOnTargets="GenerateHHTOC;BuildHTM">
+    <Exec Command="&quot;$(HtmlHelpCompilerBin)\hhc&quot; $(HelpName).hhp" WorkingDirectory="$(HelpOutputPath)\" IgnoreExitCode="true" />
+  </Target>
+
+  <!-- Generate Help Compiler 2.0 TOC-->
+
+  <Target Name="GenerateHCTOC" DependsOnTargets="ReflectionXML;BuildHTM">
+    <Exec Command="&quot;$(SandcastleBin)\XslTransform&quot; /xsl:&quot;$(SandcastleTransforms)\ReflectionToHxSContents.xsl&quot; reflection.xml /arg:html=$(HelpOutputPath)\html /out:$(HelpOutputPath)\$(HelpName).HxT"/>
+  </Target>
+
+  <!-- Create the Help Compiler 2.0 project files -->
+  <Target Name="CreateHXFiles" DependsOnTargets="EmptyOutputStructure">
+    <WriteLinesToFile File="$(HelpOutputPath)\$(HelpName).hxc" Lines="$(HXCFileContents)" Overwrite="true"/>
+    <WriteLinesToFile File="$(HelpOutputPath)\$(HelpName).hxf" Lines="$(HXFFileContents)" Overwrite="true"/>
+    <WriteLinesToFile File="$(HelpOutputPath)\$(HelpName)_a.hxk" Lines="$(HXK_AFileContents)" Overwrite="true"/>
+    <WriteLinesToFile File="$(HelpOutputPath)\$(HelpName)_b.hxk" Lines="$(HXK_BFileContents)" Overwrite="true"/>
+    <WriteLinesToFile File="$(HelpOutputPath)\$(HelpName)_f.hxk" Lines="$(HXK_FFileContents)" Overwrite="true"/>
+    <WriteLinesToFile File="$(HelpOutputPath)\$(HelpName)_k.hxk" Lines="$(HXK_KFileContents)" Overwrite="true"/>
+    <WriteLinesToFile File="$(HelpOutputPath)\$(HelpName)_n.hxk" Lines="$(HXK_NFileContents)" Overwrite="true"/>
+    <WriteLinesToFile File="$(HelpOutputPath)\$(HelpName)_s.hxk" Lines="$(HXK_SFileContents)" Overwrite="true"/>
+  </Target>
+
+  <!-- Compile the final Help Compiler 2.0 files -->
+  <Target Name="CompileHX" DependsOnTargets="GenerateHCTOC;BuildHTM;CreateHXFiles">
+    <Exec Command="&quot;$(HelpCompiler2Bin)\hxcomp&quot; -p $(HelpName).hxc -l $(HelpName).log" WorkingDirectory="$(HelpOutputPath)\" />
+  </Target>
+
+</Project>

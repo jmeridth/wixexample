@@ -1,0 +1,67 @@
+<?xml version='1.0' encoding='windows-1252'?>
+<Wix xmlns='http://schemas.microsoft.com/wix/2003/01/wi'>
+  <Product Name='WiX Example ($(var.BUILDNUMBER))' Id='E753530B-92F9-456c-9DDC-4CC960E16CC9'
+    Language='1031' Codepage='1252' Version='$(var.BUILDNUMBER)' UpgradeCode='BD313E44-C9A4-46a3-80D5-46C692F125B2'
+    Manufacturer='WiX Example'>
+
+    <Package Id='????????-????-????-????-????????????' Keywords='Installer'
+      Description="WiX Example Installer"
+      Comments='WiX Example is a registered trademark of WiX Example' Manufacturer='WiX Example'
+      InstallerVersion='110' Languages='1031' Compressed='yes' SummaryCodepage='1252' />
+    
+    <Upgrade Id='BD313E44-C9A4-46a3-80D5-46C692F125B2'>
+      <UpgradeVersion OnlyDetect='yes' Property='PATCHFOUND'
+        Minimum='$(var.BUILDNUMBER)' IncludeMinimum='yes' Maximum='$(var.BUILDNUMBER)' IncludeMaximum='yes' />
+      <UpgradeVersion OnlyDetect='yes' Property='NEWERFOUND'
+        Minimum='$(var.BUILDNUMBER)' IncludeMinimum='no' />
+    </Upgrade>
+    
+    <Media Id='1' Cabinet='Sample.cab' EmbedCab='yes' DiskPrompt="CD-ROM #1" />
+    <Property Id='DiskPrompt' Value="WiX Example $(var.BUILDNUMBER) Installation [1]" />
+
+	<CustomAction Id='AlreadyUpdated' Error='[ProductName] is already installed.' />
+    <CustomAction Id='NoDowngrade' Error='A later version of [ProductName] is already installed.' />
+
+    <Directory Id='TARGETDIR' Name='SourceDir'>
+      <Directory Id='ProgramFilesFolder' Name='PFiles'>
+        <Directory Id='INSTALLDIR' Name='WixEx' LongName='WixExampleAgeCalculator'>
+            <Component Id='FormExecutable' Guid='FA7358E6-A67B-4502-B42B-9F091353B369'>
+
+              <File Id='WixExe' Name='FormEXE' LongName='wix.example.exe' DiskId='1'
+                  Source='wix.example\bin\$(var.CONFIG)\wix.example.exe' Vital='yes'>
+                <Shortcut Id="startmenuWixEx" Directory="ProgramMenuDir" Name="WixExP"
+                  LongName="WiX Example ($(var.BUILDNUMBER))" WorkingDirectory='INSTALLDIR' Icon="wix.example.exe" IconIndex="0" />
+                <Shortcut Id="desktopWixEx" Directory="DesktopFolder" Name="WixExD"
+                  LongName="WiX Example ($(var.BUILDNUMBER))" WorkingDirectory='INSTALLDIR' Icon="wix.example.exe" IconIndex="0" />
+              </File>
+            </Component>
+    
+        </Directory>
+      </Directory>
+
+      <Directory Id="ProgramMenuFolder" Name="PMenu" LongName="Programs">
+        <Directory Id="ProgramMenuDir" Name='wix.ex' LongName="Wix Example Age Calculator" />
+      </Directory>
+
+      <Directory Id="DesktopFolder" Name="Desktop" />
+    </Directory>
+
+    <Feature Id='Complete' Title='Wix Example - Age Calculator' Description='The complete package.'
+      Display='expand' Level='1' ConfigurableDirectory='INSTALLDIR'>
+      <Feature Id='MainProgram' Title='Program' Description='The main executable.' Level='1'>
+		    <ComponentRef Id='FormExecutable' /> 
+      </Feature>
+    </Feature>
+
+    <UIRef Id="WixUI_Mondo" />
+    <UIRef Id="WixUI_ErrorProgressText" />
+    
+    <InstallExecuteSequence>
+      <Custom Action='AlreadyUpdated' After='FindRelatedProducts'>PATCHFOUND</Custom>
+      <Custom Action='NoDowngrade' After='FindRelatedProducts'>NEWERFOUND</Custom>
+      <RemoveExistingProducts After='InstallFinalize' />
+    </InstallExecuteSequence>
+
+    <Icon Id="wix.example.exe" SourceFile="wix.example\bin\$(var.CONFIG)\wix.example.exe" />
+  </Product>
+</Wix>
