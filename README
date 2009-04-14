@@ -1,0 +1,10 @@
+This is a basic project that has a bat file that will compile, run tests, use sandcastle to generate docs, and zip up everything.
+
+NOTES:
+
+1. There is a dependency of having sandcastle installed and HTML Help Workshop installed. If they are not, the build will tell you where to download them. Goal is to break this dependency.
+
+OPTIMAL GOAL:
+
+1. Move away from NAnt completely and use Rake, the Ruby build tool. It just reads much nicer. That is a little ways down the road, but soon.
+
