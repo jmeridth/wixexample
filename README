@@ -1,10 +1,13 @@
-This is a basic project that has a bat file that will compile, run tests, use sandcastle to generate docs, and zip up everything.
+An example using Microsoft's WiX with NAnt during an automated build process to generate a deployable MSI file
+
+<a href="http://wix.sourceforge.net/">Offical Website</a>
+
+<a href="http://wix.sourceforge.net/manual-wix2/wix_index.htm">Schema information,etc.</a>
+
+<a href="http://www.tramontana.co.hu/wix/">Still the best tutorial</a>
 
 NOTES:
 
-1. There is a dependency of having sandcastle installed and HTML Help Workshop installed. If they are not, the build will tell you where to download them. Goal is to break this dependency.
+1. Requires MSI Installer be installed on what ever box you plan to test deployment on.
 
-OPTIMAL GOAL:
-
-1. Move away from NAnt completely and use Rake, the Ruby build tool. It just reads much nicer. That is a little ways down the road, but soon.
-
+2. I run <a href="http://msdn.microsoft.com/library/en-us/msi/setup/msival2_exe.asp">MsiVal2.exe</a> (including in source lib folder in trunk) against the created MSI to see if we violate any of <a href="http://msdn.microsoft.com/en-us/library/aa369206.aspx">Microsoft's Internal Consistency Evaluators(ICE</a>)
