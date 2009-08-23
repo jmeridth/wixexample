@@ -1,10 +1,10 @@
 An example using Microsoft's WiX with NAnt during an automated build process to generate a deployable MSI file
 
-"Offical Website":http://wix.sourceforge.net/
+{Offical Website}[http://wix.sourceforge.net/]
 
-"Schema information,etc.":http://wix.sourceforge.net/manual-wix2/wix_index.htm
+{Schema information,etc.}[http://wix.sourceforge.net/manual-wix2/wix_index.htm]
 
-"Still the best tutorial":http://www.tramontana.co.hu/wix/
+{Still the best tutorial}[http://www.tramontana.co.hu/wix/]
 
 NOTES:
 
